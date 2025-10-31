@@ -34,22 +34,17 @@ void update_transform_matrix(AppState* state) {
     
     state->transform = glm::mat4(1.0f);
     
-    // 1. Сдвиг из [-1,1] в [0,2]
-    // state->transform = glm::translate(state->transform, glm::vec3(1.0f, 1.0f, 0.0f));
-    
-    // 2. Масштабирование к размерам окна
-
-    
-    // 3. Сдвиг на половину экрана, чтобы центр был в середине окна
+    // 1. Сначала сдвигаем (0,0) в центр окна
     state->transform = glm::translate(state->transform, glm::vec3(
-        state->window_width / 2.0f,
-        state->window_height / 2.0f,
+        state->window_width / 2.0f,   // Сдвиг по X на половину ширины
+        state->window_height / 2.0f,  // Сдвиг по Y на половину высоты
         0.0f
     ));
-
+    
+    // 2. Потом масштабируем к размерам окна
     state->transform = glm::scale(state->transform, glm::vec3(
-        state->window_width / 2.0f,
-        -state->window_height / 2.0f,  // Отрицательный Y для инверсии
+        state->window_width / 2.0f,   // Масштаб по X
+        -state->window_height / 2.0f, // Масштаб по Y (отрицательный для инверсии)
         1.0f
     ));
 }
@@ -105,7 +100,7 @@ extern "C" SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     switch (event->type) {
         case SDL_EVENT_QUIT:
             SDL_Log("Quit event received");
-            return SDL_APP_FAILURE;
+            return SDL_APP_SUCCESS;
 
         case SDL_EVENT_WINDOW_RESIZED:
             state->window_width = event->window.data1;
@@ -117,7 +112,7 @@ extern "C" SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
         case SDL_EVENT_KEY_DOWN:
             SDL_Log("Key pressed: %s", SDL_GetKeyName(event->key.key));
             if (event->key.key == SDLK_ESCAPE) {
-                SDL_Log("Escape key pressed, quitting");
+                SDL_Log("Escape key pressed, exiting normally");
                 return SDL_APP_SUCCESS;
             }
             break;
