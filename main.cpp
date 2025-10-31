@@ -82,6 +82,10 @@ extern "C" SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         return SDL_APP_FAILURE;
     }
 
+    // Логируем только имя рендерера
+    const char* renderer_name = SDL_GetRendererName(state->renderer);
+    SDL_Log("Renderer: %s", renderer_name ? renderer_name : "Unknown");
+
     // Инициализация матрицы преобразования
     update_transform_matrix(state);
 
