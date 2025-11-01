@@ -50,7 +50,7 @@ void update_transform_matrix(AppState* state) {
 }
 
 // Callback инициализации приложения
-extern "C" SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     // Выделяем память для состояния приложения
     AppState* state = new AppState();
     *appstate = state;
@@ -98,7 +98,7 @@ extern "C" SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 }
 
 // Callback обработки событий
-extern "C" SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     AppState* state = static_cast<AppState*>(appstate);
 
     switch (event->type) {
@@ -134,7 +134,7 @@ extern "C" SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 }
 
 // Callback основной итерации (рендеринг)
-extern "C" SDL_AppResult SDL_AppIterate(void* appstate) {
+SDL_AppResult SDL_AppIterate(void* appstate) {
     AppState* state = static_cast<AppState*>(appstate);
 
     // Очистка экрана
@@ -166,7 +166,7 @@ extern "C" SDL_AppResult SDL_AppIterate(void* appstate) {
 }
 
 // Callback деинициализации приложения
-extern "C" void SDL_AppQuit(void* appstate, SDL_AppResult result) {
+void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     AppState* state = static_cast<AppState*>(appstate);
     
     // Преобразуем результат в читаемую строку
@@ -178,9 +178,7 @@ extern "C" void SDL_AppQuit(void* appstate, SDL_AppResult result) {
         case SDL_APP_FAILURE:
             result_str = "SDL_APP_FAILURE";
             break;
-        case SDL_APP_CONTINUE:
-            result_str = "SDL_APP_CONTINUE";
-            break;
+        // SDL_APP_CONTINUE никогда не попадает сюда
     }
     
     SDL_Log("SDL_AppQuit called with result: %s", result_str);
