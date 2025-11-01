@@ -75,7 +75,7 @@ extern "C" SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     }
 
     // Создание рендерера
-    state->renderer = SDL_CreateRenderer(state->window, NULL);
+    state->renderer = SDL_CreateRenderer(state->window, nullptr);
     if (!state->renderer) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Renderer creation failed: %s", SDL_GetError());
         SDL_DestroyWindow(state->window);
@@ -150,7 +150,7 @@ extern "C" SDL_AppResult SDL_AppIterate(void* appstate) {
     }
 
     // Отрисовка треугольника
-    int result = SDL_RenderGeometry(state->renderer, NULL, vertices, 3, NULL, 0);
+    int result = SDL_RenderGeometry(state->renderer, nullptr, vertices, 3, nullptr, 0);
     if (result < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_RENDER, "Failed to render geometry: %s", SDL_GetError());
         return SDL_APP_CONTINUE; // Продолжаем несмотря на ошибку рендеринга
@@ -201,7 +201,5 @@ extern "C" void SDL_AppQuit(void* appstate, SDL_AppResult result) {
         SDL_Log("AppState memory freed");
     }
 
-    SDL_Quit();
-    SDL_Log("SDL quit completed");
     SDL_Log("Application finished successfully");
 }
