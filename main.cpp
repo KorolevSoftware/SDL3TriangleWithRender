@@ -65,20 +65,12 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    // Создание окна
-    state->window = SDL_CreateWindow("Hello Triangle - SDL3 with OpenGL Coordinates", 
+    // Создание окна и рендерера за один вызов
+    if (!SDL_CreateWindowAndRenderer("Hello Triangle - SDL3 with OpenGL Coordinates", 
                                      state->window_width, state->window_height, 
-                                     SDL_WINDOW_RESIZABLE);
-    if (!state->window) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window creation failed: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    // Создание рендерера
-    state->renderer = SDL_CreateRenderer(state->window, nullptr);
-    if (!state->renderer) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Renderer creation failed: %s", SDL_GetError());
-        SDL_DestroyWindow(state->window);
+                                     SDL_WINDOW_RESIZABLE, 
+                                     &state->window, &state->renderer)) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window and renderer creation failed: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
