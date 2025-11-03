@@ -11,6 +11,11 @@ struct AppState {
     int window_width;
     int window_height;
     
+    // Тайминги для delta time
+    Uint64 previous_ticks;
+    Uint64 current_ticks;
+    float delta_time;
+    
     // Вершины в координатах OpenGL
     glm::vec2 opengl_vertices[3] = {
         glm::vec2(0.0f,  0.5f),   // Верх
@@ -58,6 +63,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     // Устанавливаем начальные размеры окна
     state->window_width = 800;
     state->window_height = 600;
+
+    // Инициализация таймингов
+    state->previous_ticks = SDL_GetTicks();
+    state->current_ticks = state->previous_ticks;
+    state->delta_time = 0.0f;
 
     // Инициализация SDL (возвращает bool в SDL3 - true при успехе)
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -129,6 +139,23 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 SDL_AppResult SDL_AppIterate(void* appstate) {
     AppState* state = static_cast<AppState*>(appstate);
 
+    // Расчет delta time
+    state->current_ticks = SDL_GetTicks();
+    state->delta_time = (state->current_ticks - state->previous_ticks) / 1000.0f; // Convert to seconds
+    state->previous_ticks = state->current_ticks;
+
+    // Логируем FPS каждую секунду (опционально)
+    static Uint64 fps_timer = 0;
+    static int frame_count = 0;
+    frame_count++;
+    
+    if (state->current_ticks - fps_timer >= 1000) { // Каждую секунду
+        float fps = frame_count / ((state->current_ticks - fps_timer) / 1000.0f);
+        SDL_Log("FPS: %.1f, Delta time: %.3f ms", fps, state->delta_time * 1000.0f);
+        fps_timer = state->current_ticks;
+        frame_count = 0;
+    }
+
     // Очистка экрана
     SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255);
     SDL_RenderClear(state->renderer);
@@ -151,8 +178,8 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     // Обновление экрана
     SDL_RenderPresent(state->renderer);
 
-    // Небольшая задержка для снижения нагрузки на CPU (~60 FPS)
-    SDL_Delay(16);
+    // Небольшая задержка для снижения нагрузки на CPU (если нужно ограничить FPS)
+    // SDL_Delay(16); // Теперь используем delta time для логики
     
     return SDL_APP_CONTINUE;
 }
