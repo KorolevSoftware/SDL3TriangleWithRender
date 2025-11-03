@@ -3,23 +3,14 @@
 
 # Hello Triangle - SDL3 with OpenGL Coordinates
 
-A modern C++ demonstration project showcasing SDL3 graphics programming with proper coordinate system transformations and callback-based application architecture. I use vibe coding)
-
-## Features
-
-- **SDL3 Integration**: Utilizes the latest SDL3 API with callback-driven application lifecycle
-- **OpenGL-style Coordinates**: Implements a coordinate system similar to OpenGL with center at (0,0) and normalized ranges
-- **Hardware-Accelerated Rendering**: Uses SDL_RenderGeometry for efficient triangle rendering
-- **Delta Time Calculation**: Real-time frame timing for smooth animations and performance monitoring
-- **Cross-Platform**: Compatible with Windows, macOS, and Linux
-- **Modern C++**: Uses contemporary C++ features and smart memory management
+A modern C++ demonstration project showcasing SDL3 graphics programming with proper coordinate system transformations and callback-based application architecture. USE vibe coding)
 
 ## Project Structure
 
 ```
 hello_triangle/
-├── CMakeLists.txt        # Build configuration
-├── main.cpp              # Main application source
+├── CMakeLists.txt          # Build configuration
+├── main.cpp               # Main application source
 └── README.md             # This file
 ```
 
@@ -29,6 +20,65 @@ hello_triangle/
 - **GLM** (OpenGL Mathematics library)
 - **C++17** compatible compiler
 - **CMake** 3.16+
+
+## Coordinate System Transformation
+
+### Transformation Function: `update_transform_matrix`
+
+The core of the coordinate conversion is handled by this function:
+
+```cpp
+void update_transform_matrix(AppState* state) {
+    state->transform = glm::mat4(1.0f);
+    
+    // 1. First, shift (0,0) to the center of the window
+    state->transform = glm::translate(state->transform, glm::vec3(
+        state->window_width / 2.0f,   // X shift by half width
+        state->window_height / 2.0f,  // Y shift by half height
+        0.0f
+    ));
+    
+    // 2. Then scale to window dimensions
+    state->transform = glm::scale(state->transform, glm::vec3(
+        state->window_width / 2.0f,   // X scale
+        -state->window_height / 2.0f, // Y scale (negative for Y inversion)
+        1.0f
+    ));
+}
+```
+
+### Input Data: OpenGL Coordinate Vertices
+
+The triangle vertices are defined in OpenGL normalized device coordinates:
+
+```cpp
+glm::vec2 opengl_vertices[3] = {
+    glm::vec2(0.0f,  0.5f),   // Top vertex
+    glm::vec2(0.5f, -0.5f),   // Bottom-right vertex  
+    glm::vec2(-0.5f, -0.5f)   // Bottom-left vertex
+};
+```
+
+### Vertex Colors
+
+Each vertex has an associated color for gradient rendering:
+
+```cpp
+SDL_FColor vertex_colors[3] = {
+    { 1.0f, 0.0f, 0.0f, 1.0f },   // Red - Top vertex
+    { 0.0f, 1.0f, 0.0f, 1.0f },   // Green - Bottom-right vertex
+    { 0.0f, 0.0f, 1.0f, 1.0f }    // Blue - Bottom-left vertex
+};
+```
+
+## Features
+
+- **SDL3 Integration**: Utilizes the latest SDL3 API with callback-driven application lifecycle
+- **OpenGL-style Coordinates**: Implements a coordinate system similar to OpenGL with center at (0,0) and normalized ranges
+- **Hardware-Accelerated Rendering**: Uses SDL_RenderGeometry for efficient triangle rendering
+- **Delta Time Calculation**: Real-time frame timing for smooth animations and performance monitoring
+- **Cross-Platform**: Compatible with Windows, macOS, and Linux
+- **Modern C++**: Uses contemporary C++ features and smart memory management
 
 ## Building
 
@@ -73,25 +123,20 @@ The project demonstrates SDL3's callback-based architecture:
 - **SDL_AppIterate**: Main rendering loop with delta time calculation
 - **SDL_AppQuit**: Cleanup and resource management
 
-## Coordinate System
-
-The application transforms from OpenGL-style coordinates to SDL screen coordinates:
-- **OpenGL**: [-1, 1] × [-1, 1] with center at (0, 0)
-- **SDL**: [0, width] × [0, height] with center at (width/2, height/2)
-
 ## Key Features Demonstrated
 
-1. **Window Management**: Resizable window with proper coordinate updates
-2. **Renderer Information**: Automatic detection and logging of graphics backend
-3. **Input Handling**: Keyboard (ESC to quit) and mouse input
-4. **Performance Monitoring**: Real-time FPS and delta time calculation
-5. **Memory Management**: Proper resource cleanup using RAII principles
+1. **Window Management**: Resizable window with automatic coordinate system updates
+2. **Coordinate Transformation**: Mathematical conversion between OpenGL and SDL coordinate systems
+3. **Renderer Information**: Automatic detection and logging of graphics backend
+4. **Input Handling**: Keyboard (ESC to quit) and mouse input with coordinate conversion
+5. **Performance Monitoring**: Real-time FPS and delta time calculation
+6. **Memory Management**: Proper resource cleanup using RAII principles
 
 ## Controls
 
 - **ESC**: Exit application
-- **Window Resize**: Automatically adjusts coordinate system
-- **Mouse Click**: Logs coordinates relative to center
+- **Window Resize**: Automatically adjusts coordinate transformation matrix
+- **Mouse Click**: Logs coordinates in both window space and relative to center
 
 ## Performance
 
@@ -99,6 +144,7 @@ The application includes built-in performance monitoring:
 - Real-time FPS counter
 - Delta time calculation for frame-independent animations
 - Efficient rendering using SDL's geometry API
+- Automatic performance logging every second
 
 ## Contributing
 
