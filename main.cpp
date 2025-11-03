@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// Структура для хранения состояния приложения
+// Application state structure
 struct AppState {
     SDL_Window* window;
     SDL_Renderer* renderer;
@@ -11,71 +11,71 @@ struct AppState {
     int window_width;
     int window_height;
     
-    // Тайминги для delta time
+    // Timing for delta time
     Uint64 previous_ticks;
     Uint64 current_ticks;
     float delta_time;
     
-    // Вершины в координатах OpenGL
+    // Vertices in OpenGL coordinates
     glm::vec2 opengl_vertices[3] = {
-        glm::vec2(0.0f,  0.5f),   // Верх
-        glm::vec2(0.5f, -0.5f),   // Право-низ
-        glm::vec2(-0.5f, -0.5f)   // Лево-низ
+        glm::vec2(0.0f,  0.5f),   // Top
+        glm::vec2(0.5f, -0.5f),   // Bottom-right
+        glm::vec2(-0.5f, -0.5f)   // Bottom-left
     };
     
-    // Цвета вершин в формате SDL_FColor (0.0f - 1.0f)
+    // Vertex colors in SDL_FColor format (0.0f - 1.0f)
     SDL_FColor vertex_colors[3] = {
-        { 1.0f, 0.0f, 0.0f, 1.0f },   // Красный
-        { 0.0f, 1.0f, 0.0f, 1.0f },   // Зеленый  
-        { 0.0f, 0.0f, 1.0f, 1.0f }    // Синий
+        { 1.0f, 0.0f, 0.0f, 1.0f },   // Red
+        { 0.0f, 1.0f, 0.0f, 1.0f },   // Green  
+        { 0.0f, 0.0f, 1.0f, 1.0f }    // Blue
     };
 };
 
-// Функция для обновления матрицы преобразования
+// Function to update transformation matrix
 void update_transform_matrix(AppState* state) {
-    // Создаем матрицу преобразования из OpenGL в SDL координаты
-    // OpenGL: [-1,1] x [-1,1] с центром в (0,0)
-    // SDL: [0,width] x [0,height] с центром в (width/2, height/2)
+    // Create transformation matrix from OpenGL to SDL coordinates
+    // OpenGL: [-1,1] x [-1,1] with center at (0,0)
+    // SDL: [0,width] x [0,height] with center at (width/2, height/2)
     
     state->transform = glm::mat4(1.0f);
     
-    // 1. Сначала сдвигаем (0,0) в центр окна
+    // 1. First, shift (0,0) to the center of the window
     state->transform = glm::translate(state->transform, glm::vec3(
-        state->window_width / 2.0f,   // Сдвиг по X на половину ширины
-        state->window_height / 2.0f,  // Сдвиг по Y на половину высоты
+        state->window_width / 2.0f,   // X shift by half width
+        state->window_height / 2.0f,  // Y shift by half height
         0.0f
     ));
     
-    // 2. Потом масштабируем к размерам окна
+    // 2. Then scale to window dimensions
     state->transform = glm::scale(state->transform, glm::vec3(
-        state->window_width / 2.0f,   // Масштаб по X
-        -state->window_height / 2.0f, // Масштаб по Y (отрицательный для инверсии)
+        state->window_width / 2.0f,   // X scale
+        -state->window_height / 2.0f, // Y scale (negative for Y inversion)
         1.0f
     ));
 }
 
-// Callback инициализации приложения
+// Application initialization callback
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    // Выделяем память для состояния приложения
+    // Allocate memory for application state
     AppState* state = new AppState();
     *appstate = state;
     
-    // Устанавливаем начальные размеры окна
+    // Set initial window dimensions
     state->window_width = 800;
     state->window_height = 600;
 
-    // Инициализация таймингов
+    // Initialize timing
     state->previous_ticks = SDL_GetTicks();
     state->current_ticks = state->previous_ticks;
     state->delta_time = 0.0f;
 
-    // Инициализация SDL (возвращает bool в SDL3 - true при успехе)
+    // Initialize SDL (returns bool in SDL3 - true on success)
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL initialization failed: %s", SDL_GetError());
         return SDL_APP_FAILURE;
     }
 
-    // Создание окна и рендерера за один вызов
+    // Create window and renderer in one call
     if (!SDL_CreateWindowAndRenderer("Hello Triangle - SDL3 with OpenGL Coordinates", 
                                      state->window_width, state->window_height, 
                                      SDL_WINDOW_RESIZABLE, 
@@ -84,11 +84,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    // Логируем только имя рендерера
+    // Log only renderer name
     const char* renderer_name = SDL_GetRendererName(state->renderer);
     SDL_Log("Renderer: %s", renderer_name ? renderer_name : "Unknown");
 
-    // Инициализация матрицы преобразования
+    // Initialize transformation matrix
     update_transform_matrix(state);
 
     SDL_Log("SDL_AppInit completed successfully");
@@ -99,7 +99,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     return SDL_APP_CONTINUE;
 }
 
-// Callback обработки событий
+// Event processing callback
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     AppState* state = static_cast<AppState*>(appstate);
 
@@ -124,9 +124,9 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
             break;
 
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
-            // Показываем координаты мыши относительно центра окна
+            // Show mouse coordinates relative to window center
             float mouse_x = event->button.x - state->window_width / 2.0f;
-            float mouse_y = state->window_height / 2.0f - event->button.y; // Инвертируем Y
+            float mouse_y = state->window_height / 2.0f - event->button.y; // Invert Y
             SDL_Log("Mouse button pressed at window: (%.0f, %.0f), relative to center: (%.1f, %.1f)", 
                    event->button.x, event->button.y, mouse_x, mouse_y);
             break;
@@ -135,32 +135,32 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     return SDL_APP_CONTINUE;
 }
 
-// Callback основной итерации (рендеринг)
+// Main iteration (rendering) callback
 SDL_AppResult SDL_AppIterate(void* appstate) {
     AppState* state = static_cast<AppState*>(appstate);
 
-    // Расчет delta time
+    // Calculate delta time
     state->current_ticks = SDL_GetTicks();
     state->delta_time = (state->current_ticks - state->previous_ticks) / 1000.0f; // Convert to seconds
     state->previous_ticks = state->current_ticks;
 
-    // Логируем FPS каждую секунду (опционально)
+    // Log FPS every second (optional)
     static Uint64 fps_timer = 0;
     static int frame_count = 0;
     frame_count++;
     
-    if (state->current_ticks - fps_timer >= 1000) { // Каждую секунду
+    if (state->current_ticks - fps_timer >= 1000) { // Every second
         float fps = frame_count / ((state->current_ticks - fps_timer) / 1000.0f);
         SDL_Log("FPS: %.1f, Delta time: %.3f ms", fps, state->delta_time * 1000.0f);
         fps_timer = state->current_ticks;
         frame_count = 0;
     }
 
-    // Очистка экрана
+    // Clear screen
     SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255);
     SDL_RenderClear(state->renderer);
 
-    // Создаем вершины для SDL с применением преобразования
+    // Create vertices for SDL with transformation applied
     SDL_Vertex vertices[3];
     for (int i = 0; i < 3; i++) {
         glm::vec4 sdl_pos = state->transform * glm::vec4(state->opengl_vertices[i], 0.0f, 1.0f);
@@ -168,27 +168,24 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
         vertices[i].color = state->vertex_colors[i];
     }
 
-    // Отрисовка треугольника
+    // Render triangle
     int result = SDL_RenderGeometry(state->renderer, nullptr, vertices, 3, nullptr, 0);
     if (result < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_RENDER, "Failed to render geometry: %s", SDL_GetError());
-        return SDL_APP_CONTINUE; // Продолжаем несмотря на ошибку рендеринга
+        return SDL_APP_CONTINUE; // Continue despite rendering error
     }
 
-    // Обновление экрана
+    // Update screen
     SDL_RenderPresent(state->renderer);
-
-    // Небольшая задержка для снижения нагрузки на CPU (если нужно ограничить FPS)
-    // SDL_Delay(16); // Теперь используем delta time для логики
     
     return SDL_APP_CONTINUE;
 }
 
-// Callback деинициализации приложения
+// Application deinitialization callback
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     AppState* state = static_cast<AppState*>(appstate);
     
-    // Преобразуем результат в читаемую строку
+    // Convert result to readable string
     const char* result_str = "Unknown";
     switch (result) {
         case SDL_APP_SUCCESS:
@@ -197,12 +194,12 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result) {
         case SDL_APP_FAILURE:
             result_str = "SDL_APP_FAILURE";
             break;
-        // SDL_APP_CONTINUE никогда не попадает сюда
+        // SDL_APP_CONTINUE never reaches here
     }
     
     SDL_Log("SDL_AppQuit called with result: %s", result_str);
 
-    // Очистка ресурсов в правильном порядке
+    // Clean up resources in correct order
     if (state) {
         if (state->renderer) {
             SDL_DestroyRenderer(state->renderer);
